@@ -302,6 +302,179 @@
       margin-top: 8px;
       display: none;
     }
+
+    /* ── No-key warning banner ── */
+    .no-key-banner {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: #FFF7ED;
+      border: 1.5px solid #FED7AA;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #9A3412;
+    }
+    .no-key-banner.visible { display: flex; }
+    .no-key-banner button {
+      margin-left: auto;
+      flex-shrink: 0;
+      font-size: 13px;
+      font-weight: 500;
+      color: #E85000;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      font-family: 'DM Sans', sans-serif;
+      text-decoration: underline;
+    }
+
+    /* ── Settings screen ── */
+    #settings-screen .app-bar { margin-bottom: 8px; }
+
+    .settings-section {
+      margin-top: 28px;
+    }
+    .settings-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      margin-bottom: 6px;
+    }
+    .settings-sub {
+      font-size: 14px;
+      color: #78716C;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .key-input-wrap {
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .key-input {
+      width: 100%;
+      padding: 15px 50px 15px 16px;
+      background: #FFF;
+      border: 1.5px solid #D4CFC9;
+      border-radius: 12px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: #1C1917;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .key-input:focus { border-color: #E85000; }
+    .key-input.saved  { border-color: #16A34A; background: #F0FDF4; }
+
+    .key-toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: #A8A29E;
+      display: flex;
+      align-items: center;
+    }
+
+    .btn-save {
+      width: 100%;
+      padding: 16px;
+      background: #1C1917;
+      color: #F5F2EE;
+      border: none;
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .btn-save:active { transform: scale(0.98); }
+    .btn-save.success { background: #16A34A; }
+
+    .save-status {
+      text-align: center;
+      font-size: 13px;
+      color: #16A34A;
+      margin-top: 10px;
+      height: 18px;
+    }
+
+    .divider {
+      height: 1px;
+      background: #E8E4DF;
+      margin: 28px 0;
+    }
+
+    .how-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .step-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .step-list li {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #1C1917;
+      color: #F5F2EE;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step-text {
+      font-size: 15px;
+      color: #1C1917;
+      line-height: 1.5;
+    }
+    .step-text a {
+      color: #E85000;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .step-text .mono {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      background: #EDEAE6;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .cost-note {
+      background: #F5F2EE;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-top: 20px;
+      font-size: 13px;
+      color: #78716C;
+      line-height: 1.55;
+    }
+    .cost-note strong { color: #1C1917; font-weight: 500; }
   </style>
 </head>
 <body>
@@ -310,7 +483,21 @@
 <div id="home-screen" class="screen active">
   <div class="app-bar">
     <div class="app-name">Fila<span>Color</span></div>
-    <div class="app-version">v1 by MeltingHero</div>
+    <button class="btn-ghost" onclick="showScreen('settings')" style="padding:8px 12px;gap:6px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      API-Key
+    </button>
+  </div>
+
+  <div id="no-key-banner" class="no-key-banner">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    Kein API-Key gesetzt — App funktioniert nicht.
+    <button onclick="showScreen('settings')">Jetzt einrichten →</button>
   </div>
 
   <div class="spectrum-wrap">
@@ -499,6 +686,12 @@ document.getElementById('file-input').addEventListener('change', async (e) => {
   if (!file) return;
   e.target.value = '';
 
+  if (!getApiKey()) {
+    showScreen('settings');
+    showSaveStatus('Bitte zuerst einen API-Key eingeben.', false);
+    return;
+  }
+
   const dataUrl  = await readFile(file);
   const base64   = dataUrl.split(',')[1];
   const mimeType = file.type || 'image/jpeg';
@@ -557,7 +750,12 @@ Regeln:
 
   const resp = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': getApiKey(),
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1000,
@@ -656,8 +854,152 @@ function resetApp() {
   showScreen('home');
 }
 </script>
+<!-- ═══ SETTINGS ══════════════════════════════════════════ -->
+<div id="settings-screen" class="screen">
+  <div class="app-bar">
+    <div class="app-name">Fila<span>Color</span></div>
+    <button class="btn-ghost" onclick="showScreen('home')" style="padding:8px 14px">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Zurück
+    </button>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-title">API-Key</div>
+    <p class="settings-sub">Der Key wird nur lokal auf deinem Gerät gespeichert — nirgendwo hochgeladen.</p>
+
+    <div class="key-input-wrap">
+      <input type="password" id="api-key-input" class="key-input"
+             placeholder="sk-ant-api03-…" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="key-toggle" onclick="toggleKeyVisibility()" id="eye-btn" title="Key anzeigen/verstecken">
+        <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <button class="btn-save" id="save-btn" onclick="saveKey()">Key speichern</button>
+    <div class="save-status" id="save-status"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div>
+    <div class="how-title">Wo bekomme ich einen API-Key?</div>
+    <ol class="step-list">
+      <li>
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> aufrufen und Account erstellen oder einloggen
+        </div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div class="step-text">
+          Im Menü auf <span class="mono">API Keys</span> klicken, dann <span class="mono">+ Create Key</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div class="step-text">
+          Einen beliebigen Namen vergeben (z.B. <span class="mono">FilaColor</span>), Key erstellen
+        </div>
+      </li>
+      <li>
+        <div class="step-num">4</div>
+        <div class="step-text">
+          Den angezeigten Key <strong>sofort kopieren</strong> — er wird danach nicht mehr vollständig angezeigt
+        </div>
+      </li>
+      <li>
+        <div class="step-num">5</div>
+        <div class="step-text">
+          Key hier oben einfügen und speichern
+        </div>
+      </li>
+    </ol>
+
+    <div class="cost-note">
+      <strong>Kosten:</strong> Die API ist kostenpflichtig, aber sehr günstig. Eine Farbanalyse kostet ca. <strong>0,002–0,005 €</strong> (ein Bild + Antwort ≈ ~1.500 Tokens mit Claude Sonnet). Anthropic gibt neuen Accounts meist ein kostenloses Startguthaben.
+    </div>
+  </div>
+
+  <div style="margin-top:auto;padding-top:32px">
+    <div class="app-version" style="text-align:center">FilaColor v1 by MeltingHero</div>
+  </div>
+</div>
+
 <script>
-if ('serviceWorker' in navigator) {
+// ── API Key management ─────────────────────────────────
+const KEY_STORE = 'filacolor_apikey';
+
+function getApiKey() {
+  return localStorage.getItem(KEY_STORE) || '';
+}
+
+function saveKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val) {
+    showSaveStatus('Bitte einen Key eingeben.', false);
+    return;
+  }
+  if (!val.startsWith('sk-ant-')) {
+    showSaveStatus('Key sieht ungültig aus (muss mit sk-ant- beginnen).', false);
+    return;
+  }
+  localStorage.setItem(KEY_STORE, val);
+  document.getElementById('api-key-input').className = 'key-input saved';
+  document.getElementById('save-btn').className = 'btn-save success';
+  document.getElementById('save-btn').textContent = '✓ Gespeichert';
+  showSaveStatus('Key gespeichert — App ist einsatzbereit.', true);
+  updateKeyBanner();
+  setTimeout(() => {
+    document.getElementById('save-btn').className = 'btn-save';
+    document.getElementById('save-btn').textContent = 'Key speichern';
+  }, 2500);
+}
+
+function showSaveStatus(msg, ok) {
+  const el = document.getElementById('save-status');
+  el.textContent = msg;
+  el.style.color = ok ? '#16A34A' : '#DC2626';
+  setTimeout(() => { el.textContent = ''; }, 4000);
+}
+
+function toggleKeyVisibility() {
+  const inp = document.getElementById('api-key-input');
+  const icon = document.getElementById('eye-icon');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  } else {
+    inp.type = 'password';
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+}
+
+function updateKeyBanner() {
+  const banner = document.getElementById('no-key-banner');
+  if (getApiKey()) {
+    banner.classList.remove('visible');
+  } else {
+    banner.classList.add('visible');
+  }
+}
+
+// Pre-fill input if key already saved
+window.addEventListener('load', () => {
+  const saved = getApiKey();
+  if (saved) {
+    const inp = document.getElementById('api-key-input');
+    inp.value = saved;
+    inp.className = 'key-input saved';
+  }
+  updateKeyBanner();
+});
+</script>
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   });
