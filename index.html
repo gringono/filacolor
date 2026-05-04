@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#F5F2EE">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <title>FilaColor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #F5F2EE;
+      color: #1C1917;
+      min-height: 100dvh;
+      max-width: 480px;
+      margin: 0 auto;
+      overflow-x: hidden;
+    }
+
+    .screen { display: none; flex-direction: column; min-height: 100dvh; padding: 0 24px 40px; }
+    .screen.active { display: flex; }
+
+    /* ── Header ── */
+    .app-bar {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 22px 0 0;
+      margin-bottom: 28px;
+    }
+    .app-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .app-name span { color: #E85000; }
+    .app-version {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: #B5B0AB;
+    }
+
+    /* ── Spectrum ── */
+    .spectrum-wrap {
+      width: 100%;
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 36px;
+      flex-shrink: 0;
+    }
+    #spectrum-canvas {
+      display: block;
+      width: 100%;
+      height: 108px;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    /* ── Home ── */
+    .home-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .home-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 36px;
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -1.2px;
+      margin-bottom: 14px;
+    }
+    .home-sub {
+      font-size: 16px;
+      color: #78716C;
+      line-height: 1.55;
+      margin-bottom: 48px;
+      max-width: 300px;
+    }
+
+    /* ── Buttons ── */
+    .btn-capture {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 19px 24px;
+      background: #1C1917;
+      color: #F5F2EE;
+      border: none;
+      border-radius: 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 18px;
+      font-weight: 500;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.12s, background 0.15s;
+    }
+    .btn-capture:active { transform: scale(0.975); background: #333; }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 16px;
+      background: transparent;
+      border: 1.5px solid #D4CFC9;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      color: #78716C;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.12s;
+    }
+    .btn-ghost:active { transform: scale(0.97); }
+
+    #file-input { display: none; }
+
+    /* ── Loading ── */
+    .loading-img-wrap {
+      width: 100%;
+      aspect-ratio: 4/3;
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 30px;
+      background: #E8E4DF;
+    }
+    .loading-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: blur(5px) brightness(0.85) saturate(0.8);
+    }
+    .loading-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .loading-sub { font-size: 15px; color: #78716C; margin-bottom: 24px; }
+    .progress-track {
+      width: 100%;
+      height: 4px;
+      background: #E8E4DF;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: #E85000;
+      border-radius: 4px;
+      animation: loadAnim 3.5s ease-in-out forwards;
+    }
+    @keyframes loadAnim {
+      0%   { width: 4%; }
+      40%  { width: 60%; }
+      80%  { width: 88%; }
+      100% { width: 95%; }
+    }
+
+    /* ── Result ── */
+    .result-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 0 20px;
+    }
+
+    .color-swatch {
+      width: 100%;
+      height: 148px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: flex-end;
+      padding: 16px 18px;
+      position: relative;
+    }
+    .hex-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 20px;
+      font-weight: 500;
+    }
+    .hex-label.on-dark  { color: rgba(255,255,255,0.88); }
+    .hex-label.on-light { color: rgba(0,0,0,0.50); }
+
+    .card {
+      background: #FFF;
+      border-radius: 16px;
+      padding: 18px 20px;
+      margin-bottom: 12px;
+    }
+    .card-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.9px;
+      text-transform: uppercase;
+      color: #B5B0AB;
+      margin-bottom: 10px;
+    }
+
+    .color-name-big {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 1.15;
+      margin-bottom: 5px;
+    }
+    .color-category { font-size: 15px; color: #78716C; }
+
+    /* Finish badge */
+    .finish-row { display: flex; align-items: center; gap: 12px; }
+    .finish-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 7px 16px;
+      border-radius: 24px;
+    }
+    .fb-matt      { background: #EDEAE6; color: #57534E; }
+    .fb-glaenzend { background: #DBEAFE; color: #1D4ED8; }
+    .fb-satin     { background: #DCFCE7; color: #15803D; }
+    .confidence   { font-size: 14px; color: #A8A29E; }
+
+    /* Gauges */
+    .gauge + .gauge { margin-top: 14px; }
+    .gauge-head {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 7px;
+    }
+    .gauge-head span:first-child { font-size: 14px; color: #57534E; }
+    .gauge-head span:last-child  { font-family: 'DM Mono', monospace; font-size: 13px; color: #B5B0AB; }
+    .gauge-track {
+      height: 8px;
+      background: #F0EDE9;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .gauge-fill {
+      height: 100%;
+      border-radius: 8px;
+      width: 0;
+      transition: width 0.9s cubic-bezier(0.34, 1.3, 0.64, 1);
+    }
+
+    /* Color bars */
+    .bar-row { display: flex; align-items: center; gap: 12px; }
+    .bar-row + .bar-row { margin-top: 14px; }
+    .bar-dot {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: inset 0 0 0 1.5px rgba(0,0,0,0.09);
+    }
+    .bar-info { flex: 1; }
+    .bar-name { font-size: 14px; color: #1C1917; margin-bottom: 5px; }
+    .bar-track { height: 6px; background: #F0EDE9; border-radius: 6px; overflow: hidden; }
+    .bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      width: 0;
+      transition: width 0.9s cubic-bezier(0.34, 1.3, 0.64, 1);
+    }
+    .bar-pct { font-family: 'DM Mono', monospace; font-size: 13px; color: #B5B0AB; min-width: 36px; text-align: right; }
+
+    .btn-rescan {
+      width: 100%;
+      margin-top: 8px;
+      padding: 19px;
+      background: #1C1917;
+      color: #F5F2EE;
+      border: none;
+      border-radius: 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 17px;
+      font-weight: 500;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-rescan:active { transform: scale(0.98); }
+
+    .error-msg {
+      background: #FEF2F2;
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: #DC2626;
+      font-size: 14px;
+      margin-top: 8px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ HOME ═══════════════════════════════════════════ -->
+<div id="home-screen" class="screen active">
+  <div class="app-bar">
+    <div class="app-name">Fila<span>Color</span></div>
+    <div class="app-version">v1 by MeltingHero</div>
+  </div>
+
+  <div class="spectrum-wrap">
+    <canvas id="spectrum-canvas"></canvas>
+  </div>
+
+  <div class="home-body">
+    <h1 class="home-title">Welche Farbe<br>kann das sein?</h1>
+    <p class="home-sub">Fotografiere eine Filamentspule oder ein Druckteil — KI analysiert Farbe und Oberfläche.</p>
+    <button class="btn-capture" onclick="document.getElementById('file-input').click()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      Farbe erfassen
+    </button>
+    <input type="file" id="file-input" accept="image/*" capture="environment">
+  </div>
+</div>
+
+<!-- ═══ LOADING ═════════════════════════════════════════ -->
+<div id="loading-screen" class="screen">
+  <div class="app-bar">
+    <div class="app-name">Fila<span>Color</span></div>
+    <div class="app-version">v1 by MeltingHero</div>
+  </div>
+  <div class="loading-img-wrap">
+    <img id="loading-img" src="" alt="">
+  </div>
+  <div class="loading-title">Analysiere Farbe …</div>
+  <p class="loading-sub">KI untersucht Farbton und Oberfläche</p>
+  <div class="progress-track"><div class="progress-bar"></div></div>
+</div>
+
+<!-- ═══ RESULT ═══════════════════════════════════════════ -->
+<div id="result-screen" class="screen">
+  <div class="result-bar">
+    <div class="app-name">Fila<span>Color</span></div>
+    <button class="btn-ghost" onclick="resetApp()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.93"/>
+      </svg>
+      Erneut scannen
+    </button>
+  </div>
+
+  <div id="color-swatch" class="color-swatch">
+    <span id="hex-label" class="hex-label on-dark"></span>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Dominante Farbe</div>
+    <div id="r-name" class="color-name-big"></div>
+    <div id="r-category" class="color-category"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Oberfläche</div>
+    <div class="finish-row">
+      <span id="r-finish" class="finish-badge fb-matt"></span>
+      <span id="r-confidence" class="confidence"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Eigenschaften</div>
+    <div class="gauge">
+      <div class="gauge-head"><span>Helligkeit</span><span id="r-bright-val">—</span></div>
+      <div class="gauge-track"><div id="r-bright-fill" class="gauge-fill" style="background:#F5CE7A"></div></div>
+    </div>
+    <div class="gauge">
+      <div class="gauge-head"><span>Sättigung</span><span id="r-sat-val">—</span></div>
+      <div class="gauge-track"><div id="r-sat-fill" class="gauge-fill" style="background:#E85000"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Farbanteile</div>
+    <div id="r-bars"></div>
+  </div>
+
+  <div id="error-msg" class="error-msg"></div>
+
+  <button class="btn-rescan" onclick="resetApp()">↺ &nbsp;Neues Foto analysieren</button>
+</div>
+
+<script>
+// ── Wavelength → RGB (CIE approximation) ──────────────
+function wlToRgb(wl) {
+  let r = 0, g = 0, b = 0;
+  if      (wl >= 380 && wl < 440) { r = -(wl-440)/(440-380); g = 0; b = 1; }
+  else if (wl >= 440 && wl < 490) { r = 0; g = (wl-440)/(490-440); b = 1; }
+  else if (wl >= 490 && wl < 510) { r = 0; g = 1; b = -(wl-510)/(510-490); }
+  else if (wl >= 510 && wl < 580) { r = (wl-510)/(580-510); g = 1; b = 0; }
+  else if (wl >= 580 && wl < 645) { r = 1; g = -(wl-645)/(645-580); b = 0; }
+  else if (wl >= 645 && wl <= 780) { r = 1; g = 0; b = 0; }
+  let f = 1;
+  if      (wl >= 380 && wl < 420) f = 0.3 + 0.7*(wl-380)/40;
+  else if (wl > 700  && wl <= 780) f = 0.3 + 0.7*(780-wl)/80;
+  return [Math.round(r*f*255), Math.round(g*f*255), Math.round(b*f*255)];
+}
+
+// ── Spectrum canvas ────────────────────────────────────
+function drawSpectrum() {
+  const canvas  = document.getElementById('spectrum-canvas');
+  const wrap    = canvas.parentElement;
+  const dpr     = Math.min(window.devicePixelRatio || 1, 2);
+  const W       = wrap.offsetWidth;
+  const H       = 108;
+
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  // App background color
+  const BG = [245, 242, 238];
+
+  const barTop  = 8;
+  const barH    = 68;
+  const tickY   = barTop + barH + 4;
+  const labelY  = barTop + barH + 18;
+
+  const WL_MIN  = 340;   // show a bit of UV
+  const WL_MAX  = 750;   // show a bit of IR
+  const WL_VIS0 = 380;
+  const WL_VIS1 = 700;
+  const PX      = 4;     // stripe width (pixelated but still readable)
+  const nStripes = Math.ceil(W / PX);
+
+  for (let i = 0; i < nStripes; i++) {
+    const wl = WL_MIN + (i / nStripes) * (WL_MAX - WL_MIN);
+    const x  = i * PX;
+
+    const [sr, sg, sb] = wlToRgb(wl);
+
+    // Fade into app-bg outside visible range
+    let alpha = 1;
+    if      (wl < WL_VIS0) alpha = Math.max(0, (wl - WL_MIN)  / (WL_VIS0 - WL_MIN));
+    else if (wl > WL_VIS1) alpha = Math.max(0, (WL_MAX - wl)  / (WL_MAX - WL_VIS1));
+
+    const fr = Math.round(BG[0] + (sr - BG[0]) * alpha);
+    const fg = Math.round(BG[1] + (sg - BG[1]) * alpha);
+    const fb = Math.round(BG[2] + (sb - BG[2]) * alpha);
+
+    ctx.fillStyle = `rgb(${fr},${fg},${fb})`;
+    ctx.fillRect(x, barTop, PX - 1, barH);
+  }
+
+  // Tick marks + nm labels
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'top';
+  ctx.font         = '500 10px "DM Mono", monospace';
+
+  [400, 450, 500, 550, 600, 650, 700].forEach(nm => {
+    const t = (nm - WL_MIN) / (WL_MAX - WL_MIN);
+    const x = Math.round(t * W);
+
+    ctx.strokeStyle = 'rgba(28,25,23,0.2)';
+    ctx.lineWidth   = 1;
+    ctx.beginPath();
+    ctx.moveTo(x + 0.5, tickY);
+    ctx.lineTo(x + 0.5, tickY + 5);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(28,25,23,0.38)';
+    ctx.fillText(nm + ' nm', x, labelY);
+  });
+
+  // UV / IR side labels
+  ctx.font      = '500 10px "DM Sans", sans-serif';
+  ctx.fillStyle = 'rgba(28,25,23,0.3)';
+  ctx.textAlign = 'left';
+  ctx.fillText('← UV', 6, labelY);
+  ctx.textAlign = 'right';
+  ctx.fillText('IR →', W - 6, labelY);
+}
+window.addEventListener('load', drawSpectrum);
+
+// ── File input ─────────────────────────────────────────
+document.getElementById('file-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = '';
+
+  const dataUrl  = await readFile(file);
+  const base64   = dataUrl.split(',')[1];
+  const mimeType = file.type || 'image/jpeg';
+
+  document.getElementById('loading-img').src = dataUrl;
+  // Re-trigger animation
+  const bar = document.querySelector('.progress-bar');
+  bar.style.animation = 'none';
+  bar.offsetHeight;
+  bar.style.animation = '';
+  showScreen('loading');
+
+  try {
+    const result = await analyzeImage(base64, mimeType);
+    renderResult(result);
+    showScreen('result');
+  } catch (err) {
+    showScreen('result');
+    const el = document.getElementById('error-msg');
+    el.textContent = 'Fehler bei der Analyse: ' + (err.message || err);
+    el.style.display = 'block';
+  }
+});
+
+function readFile(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload  = ev => res(ev.target.result);
+    r.onerror = () => rej(new Error('Datei konnte nicht gelesen werden'));
+    r.readAsDataURL(file);
+  });
+}
+
+// ── Claude Vision API ──────────────────────────────────
+async function analyzeImage(base64, mimeType) {
+  const prompt = `Analysiere das Bild. Identifiziere die dominante Farbe des Hauptobjekts (Filamentspule, gedrucktes 3D-Teil o.ä. Kunststoffobjekt).
+
+Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt — kein Markdown, kein Codeblock, kein erklärender Text:
+{
+  "dominantColor": { "hex": "#RRGGBB", "name": "Farbname auf Deutsch" },
+  "category": "Kurze prägnante Beschreibung z.B. Petrol-Blau, Elfenbein, Signalrot",
+  "finish": { "type": "Matt", "confidence": 85 },
+  "brightness": 65,
+  "saturation": 70,
+  "topColors": [
+    { "hex": "#RRGGBB", "name": "Farbname", "percentage": 55 },
+    { "hex": "#RRGGBB", "name": "Farbname", "percentage": 30 },
+    { "hex": "#RRGGBB", "name": "Farbname", "percentage": 15 }
+  ]
+}
+Regeln:
+- finish.type: NUR "Matt", "Glänzend" oder "Satin"
+- hex: immer #RRGGBB Großbuchstaben
+- brightness, saturation: Ganzzahlen 0–100
+- topColors: genau 3 Einträge, Summe der percentage ~100`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: mimeType, data: base64 } },
+          { type: 'text',  text: prompt }
+        ]
+      }]
+    })
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error?.message || `HTTP ${resp.status}`);
+  }
+
+  const data = await resp.json();
+  const raw  = data.content.map(b => b.text || '').join('');
+  const json = raw.replace(/```[\s\S]*?```/g, '').replace(/```/g, '').trim();
+  return JSON.parse(json);
+}
+
+// ── Render result ──────────────────────────────────────
+function renderResult(r) {
+  // Swatch
+  const swatch = document.getElementById('color-swatch');
+  swatch.style.background = r.dominantColor.hex;
+  const hexEl = document.getElementById('hex-label');
+  hexEl.textContent = r.dominantColor.hex.toUpperCase();
+  hexEl.className = 'hex-label ' + (isLight(r.dominantColor.hex) ? 'on-light' : 'on-dark');
+
+  // Name / Category
+  document.getElementById('r-name').textContent     = r.dominantColor.name;
+  document.getElementById('r-category').textContent = r.category;
+
+  // Finish
+  const badge   = document.getElementById('r-finish');
+  const typeMap = { 'Matt': 'fb-matt', 'Glänzend': 'fb-glaenzend', 'Satin': 'fb-satin' };
+  badge.textContent = r.finish.type;
+  badge.className   = 'finish-badge ' + (typeMap[r.finish.type] || 'fb-matt');
+  document.getElementById('r-confidence').textContent = r.finish.confidence + ' % Konfidenz';
+
+  // Gauges — update after paint for animation
+  requestAnimationFrame(() => setTimeout(() => {
+    const bf = document.getElementById('r-bright-fill');
+    bf.style.width = r.brightness + '%';
+    bf.style.background = `hsl(45, 70%, ${30 + r.brightness * 0.4}%)`;
+    document.getElementById('r-bright-val').textContent = r.brightness + ' %';
+
+    const sf = document.getElementById('r-sat-fill');
+    sf.style.width = r.saturation + '%';
+    sf.style.background = r.dominantColor.hex;
+    document.getElementById('r-sat-val').textContent = r.saturation + ' %';
+  }, 80));
+
+  // Color bars
+  const container = document.getElementById('r-bars');
+  container.innerHTML = r.topColors.map((c, i) => `
+    <div class="bar-row">
+      <div class="bar-dot" style="background:${c.hex}"></div>
+      <div class="bar-info">
+        <div class="bar-name">${c.name}</div>
+        <div class="bar-track">
+          <div class="bar-fill" id="bf${i}" style="background:${c.hex}"></div>
+        </div>
+      </div>
+      <div class="bar-pct">${c.percentage} %</div>
+    </div>`).join('');
+
+  requestAnimationFrame(() => setTimeout(() => {
+    r.topColors.forEach((c, i) => {
+      const el = document.getElementById('bf' + i);
+      if (el) el.style.width = c.percentage + '%';
+    });
+  }, 120));
+}
+
+// ── Helpers ────────────────────────────────────────────
+function isLight(hex) {
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 145;
+}
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(name + '-screen').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function resetApp() {
+  document.getElementById('error-msg').style.display = 'none';
+  showScreen('home');
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
