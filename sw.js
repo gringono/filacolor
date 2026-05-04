@@ -1,4 +1,4 @@
-const CACHE = 'filacolor-v2';
+const CACHE = 'filacolor-v1.1';
 const STATIC = [
   './manifest.json',
   './icon-192.png',
